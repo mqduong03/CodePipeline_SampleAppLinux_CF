@@ -1,57 +1,23 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Simple S3 bucket and IAM role for CodePipeline demo'
+Description: 'Minimal template for CodePipeline testing'
 
-Resources:
-  # S3 Bucket (AWS will auto-generate unique name)
-  DemoBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      Tags:
-        - Key: Environment
-          Value: Demo
-        - Key: CreatedBy
-          Value: CodePipeline
-
-  # IAM Role
-  DemoRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: S3Access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                Resource:
-                  Fn::Join:
-                    - ''
-                    - - Fn::GetAtt: [DemoBucket, Arn]
-                      - '/*'
+Parameters:
+  TestMessage:
+    Type: String
+    Default: "CodePipeline is working!"
 
 Outputs:
-  BucketName:
-    Description: Name of the created S3 bucket
+  Message:
+    Description: Test message
     Value:
-      Ref: DemoBucket
+      Ref: TestMessage
   
-  RoleArn:
-    Description: ARN of the created IAM role
+  DeploymentTime:
+    Description: Stack information
     Value:
-      Fn::GetAtt: [DemoRole, Arn]
+      Fn::Sub: "Deployed to ${AWS::Region} in account ${AWS::AccountId}"
+  
+  StackName:
+    Description: Name of this stack
+    Value:
+      Ref: "AWS::StackName"
