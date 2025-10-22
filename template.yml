@@ -6,18 +6,26 @@ Parameters:
     Type: String
     Default: "CodePipeline is working!"
 
+Resources:
+  # Simple S3 Bucket (minimal cost)
+  TestBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
 Outputs:
   Message:
     Description: Test message
-    Value:
-      Ref: TestMessage
+    Value: !Ref TestMessage
   
-  DeploymentTime:
+  BucketName:
+    Description: Name of created bucket
+    Value: !Ref TestBucket
+  
+  DeploymentInfo:
     Description: Stack information
-    Value:
-      Fn::Sub: "Deployed to ${AWS::Region} in account ${AWS::AccountId}"
-  
-  StackName:
-    Description: Name of this stack
-    Value:
-      Ref: "AWS::StackName"
+    Value: !Sub "Deployed to ${AWS::Region} in account ${AWS::AccountId}"
