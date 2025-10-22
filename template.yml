@@ -1,18 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Simple S3 bucket and IAM role for CodePipeline demo'
 
-Parameters:
-  BucketPrefix:
-    Type: String
-    Default: my-demo-bucket
-    Description: Prefix for the S3 bucket name
-
 Resources:
-  # S3 Bucket
+  # S3 Bucket (AWS will auto-generate unique name)
   DemoBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${BucketPrefix}-${AWS::AccountId}-${AWS::Region}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -28,7 +21,6 @@ Resources:
   DemoRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "DemoRole-${AWS::Region}"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -47,13 +39,19 @@ Resources:
                 Action:
                   - s3:GetObject
                   - s3:PutObject
-                Resource: !Sub "${DemoBucket}/*"
+                Resource:
+                  Fn::Join:
+                    - ''
+                    - - Fn::GetAtt: [DemoBucket, Arn]
+                      - '/*'
 
 Outputs:
   BucketName:
     Description: Name of the created S3 bucket
-    Value: !Ref DemoBucket
+    Value:
+      Ref: DemoBucket
   
   RoleArn:
     Description: ARN of the created IAM role
-    Value: !GetAtt DemoRole.Arn
+    Value:
+      Fn::GetAtt: [DemoRole, Arn]
