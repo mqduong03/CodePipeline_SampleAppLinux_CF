@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Simple S3 bucket and IAM role for CodePipeline demo'
+
+Parameters:
+  BucketPrefix:
+    Type: String
+    Default: my-demo-bucket
+    Description: Prefix for the S3 bucket name
+
+Resources:
+  # S3 Bucket
+  DemoBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${BucketPrefix}-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: Demo
+        - Key: CreatedBy
+          Value: CodePipeline
+
+  # IAM Role
+  DemoRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "DemoRole-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub "${DemoBucket}/*"
+
+Outputs:
+  BucketName:
+    Description: Name of the created S3 bucket
+    Value: !Ref DemoBucket
+  
+  RoleArn:
+    Description: ARN of the created IAM role
+    Value: !GetAtt DemoRole.Arn
